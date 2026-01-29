@@ -1,6 +1,7 @@
 #include "roots.hpp"
 #include <cmath>
 #include <limits>
+#include <functional>
 
 
 bool bisection(std::function<double(double)> f,
@@ -9,8 +10,10 @@ bool bisection(std::function<double(double)> f,
     if (root == nullptr) return false;
     const double tol = 1e-6;
     const int max_iter = 1'000'000;
+    
     double fa = f(a);
     double fb = f(b);
+    
     if (fa * fb > 0) return false; // No root in [a, b]
 
     for (int i = 0; i < max_iter; ++i) {
@@ -37,8 +40,42 @@ bool bisection(std::function<double(double)> f,
 bool regula_falsi(std::function<double(double)> f,
                   double a, double b,
                   double *root) {
-    return false;
+    if (root == nullptr) return false;
+    
+    const double tol = 1e-6;
+    const int max_iter = 1'000'000;                     
+    
+    double fa = f(a);
+    double fb = f(b);
+    
+    if (fa * fb > 0) return false; // No root in [a, b]
+    if (fb - fa == 0) return false;
+
+
+    for (int i = 0; i < max_iter; ++i) {
+    
+    double c = (a * fb - b * fa) / (fb - fa);
+    double fc = f(c);
+
+        if (std::fabs(fc) < tol || std::fabs(b - a) <= tol) {
+            *root = c;
+            return true;    
+        }
+
+        if (fa * fc < 0) {
+            b = c;
+            fb = fc;
+        } else {            
+            a = c;
+            fa = fc;
+        }
+    }
+
+    *root = (a * fb - b * fa) / (fb - fa);
+    return true;
 }
+    
+        
 
 bool newton_raphson(std::function<double(double)> f,
                     std::function<double(double)> g,
