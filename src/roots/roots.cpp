@@ -3,6 +3,7 @@
 bool bisection(std::function<double(double)> f,
                double a, double b,
                double *root) {
+                //code
     return false;
 }
 
