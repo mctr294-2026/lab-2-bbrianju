@@ -5,9 +5,11 @@
 
 
 bool bisection(std::function<double(double)> f,
-               double a, double b,
-               double *root) {
+            double a, double b,
+            double *root) {
     if (root == nullptr) return false; // No valid output location
+    
+    // Parameters
     const double tol = 1e-6;
     const int max_iter = 1'000'000;
 
@@ -25,24 +27,25 @@ bool bisection(std::function<double(double)> f,
 
     // Iteratively shrink the interval [a, b] until convergence
     for (int i = 0; i < max_iter; ++i) {
-        double mid = 0.5 * (a + b);
-        double fm = f(mid);
+        // Calculate midpoint 
+        double c = 0.5 * (a + b);
+        double fm = f(c);
 
         // Check convergence: function value close to zero or interval sufficiently small
         // or interval width within tolerance
         if (std::fabs(fm) < tol || std::fabs(b - a) <= tol) {
-            *root = mid;
+            *root = c;
             return true;
         }
         
         // Determine which subinterval contains the root
         if (fa * fm < 0) {
             // Root is in [a, mid]
-            b = mid;
+            b = c;
             fb = fm;
         } else {
             // Root is in [mid, b]
-            a = mid;
+            a = c;
             fa = fm;
         }
     }
@@ -101,11 +104,9 @@ bool regula_falsi(std::function<double(double)> f,
     return true;
 }
     
-        
-
 bool newton_raphson(std::function<double(double)> f,
                     std::function<double(double)> g,
-                    double a, double b, double c,
+                    double a, double b, double x0,
                     double *root) {
 
     // Output pointer check                  
@@ -116,33 +117,34 @@ bool newton_raphson(std::function<double(double)> f,
     const int max_iter = 1'000'000;
 
     if (a > b) std::swap(a, b); // Ensure a < b
-    if (c < a || c > b) return false; // Initial guess not in [a, b]
+    if (x0 < a || x0 > b) return false; // Initial guess not in [a, b]
 
     // Iteratively apply the Newton-Raphson formula
     for (int i = 0; i < max_iter; ++i) {
-        double fc = f(c);
+        double fx = f(x0);
 
         // Check convergence
-        if (std::fabs(fc) <= tol) {
-            *root = c;
+        if (std::fabs(fx) <= tol) {
+            *root = x0;
             return true;
         }
-
-        double gc = g(c);
+        // Evaluate derivative
+        double gx = g(x0);
 
         // Derivative must be usable
-        if(!std::isfinite(gc) || std::fabs(gc) < 1e-12) {
+        if(!std::isfinite(gx) || std::fabs(gx) < 1e-12) {
             return false;
         }
-
-        double c_new = c - fc / gc;
+        
+        // Compute next approximation
+        double x_new = x0 - fx / gx;
 
         // Fail if iteration leaves [a, b]
-        if (!std::isfinite(c_new) || c_new < a || c_new > b) {
+        if (!std::isfinite(x_new) || x_new < a || x_new > b) {
             return false;
         }
-
-        c = c_new;
+        
+        x0 = x_new;
 
     }
         
