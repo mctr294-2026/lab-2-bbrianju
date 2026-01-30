@@ -1,6 +1,5 @@
 #include "roots.hpp"
 #include <cmath>
-#include <limits>
 #include <functional>
 #include <utility>
 
@@ -11,6 +10,9 @@ bool bisection(std::function<double(double)> f,
     if (root == nullptr) return false; // No valid output location
     const double tol = 1e-6;
     const int max_iter = 1'000'000;
+
+    // Normalize interval
+    if (a > b) std::swap(a, b); 
     
     // Evaluate function at endpoints to check for sign change
     double fa = f(a);
@@ -57,14 +59,18 @@ bool regula_falsi(std::function<double(double)> f,
     if (root == nullptr) return false;
     
     const double tol = 1e-6;
-    const int max_iter = 1'000'000;                     
+    const int max_iter = 1'000'000;    
+    
+    // Normalize interval
+    if (a > b) std::swap(a, b);
+
     
     // Evaluate function at endpoints to check for sign change
     double fa = f(a);
     double fb = f(b);
     
     if (fa * fb > 0) return false; // No root in [a, b]
-    if (fb - fa == 0) return false; // Prevent division by zero
+    if (std::fabs(fb - fa) < 1e-12) return false; // Prevent division by ~zero
 
     // Iteratively refine the estimate using the Regula Falsi formula
     for (int i = 0; i < max_iter; ++i) {
@@ -131,11 +137,6 @@ bool newton_raphson(std::function<double(double)> f,
 
         double c_new = c - fc / gc;
 
-        // Bail if we get NaN/Inf
-        if (!std::isfinite(c_new)) {
-            return false;
-        }
-
         // Fail if iteration leaves [a, b]
         if (!std::isfinite(c_new) || c_new < a || c_new > b) {
             return false;
@@ -156,13 +157,13 @@ bool secant(std::function<double(double)> f,
             double *root) {
      if (root == nullptr) return false;
 
+
     const double tol = 1e-6;
     const int max_iter = 1'000'000;
 
     // Normalize interval and validate initial guess
     if (a > b) std::swap(a, b);
     if (c < a || c > b) return false;
-
 
     double x0 = b;
     double x1 = c;
@@ -200,4 +201,3 @@ bool secant(std::function<double(double)> f,
 
     return false; // Max iterations reached without convergence
 }
-
